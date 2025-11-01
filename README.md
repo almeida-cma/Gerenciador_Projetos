@@ -56,7 +56,7 @@ O vídeo apresenta:
 Este gerenciador foi pensado para apoiar **equipes de desenvolvimento e trabalhos acadêmicos**, podendo ser adaptado para outras finalidades.
 
 Para inspiração de uso e integração com projetos reais, consulte o repositório complementar:  
-👉 [Reestruturação da OnePage “Novembro Azul”](https://github.com/almeida-cma/nuvem)
+👉 [Reestruturação da OnePage “Outubro Rosa”](https://github.com/almeida-cma/nuvem)
 
 ---
 
