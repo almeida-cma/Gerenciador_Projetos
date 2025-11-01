@@ -1,0 +1,86 @@
+{
+  "titulo": "Onepage Novembro Azul",
+  "prazoFinal": "2025-11-11",
+  "etapas": [
+    {
+      "nome": "Briefing e Planejamento",
+      "responsavel": "Carlos",
+      "prazo": "2025-10-30",
+      "pontuacao": 4,
+      "planoRisco": "",
+      "linkEtapa": "drive com documentação"
+    },
+    {
+      "nome": "Estrutura HTML Básica",
+      "responsavel": "Bianca",
+      "prazo": "2025-11-03",
+      "pontuacao": 3,
+      "planoRisco": "",
+      "linkEtapa": "repositório GitHub"
+    },
+    {
+      "nome": "Estilização CSS e Design Responsivo",
+      "responsavel": "Fernando",
+      "prazo": "2025-11-05",
+      "pontuacao": 2,
+      "planoRisco": "Dorival assumiria em caso de ausência do Fernando. Reunião de alinhamento com Bianca para manter consistência visual.",
+      "linkEtapa": "branch do repositório"
+    },
+    {
+      "nome": "Funcionalidades JavaScript",
+      "responsavel": "Dorival",
+      "prazo": "2025-11-06",
+      "pontuacao": 2,
+      "planoRisco": "Amaral como backup. Documentação detalhada das funções para facilitar transição.",
+      "linkEtapa": "arquivos JS no drive"
+    },
+    {
+      "nome": "Otimização e Performance",
+      "responsavel": "Amaral",
+      "prazo": "2025-11-07",
+      "pontuacao": 1,
+      "planoRisco": "Carlos assumiria com apoio técnico de Fernando. Checklist de otimização pré-estabelecido.",
+      "linkEtapa": "relatórios de performance"
+    },
+    {
+      "nome": "Testes e Validação",
+      "responsavel": "Bianca",
+      "prazo": "2025-11-07",
+      "pontuacao": 2,
+      "planoRisco": "Testes automatizados configurados. Fernando auxiliaria na correção de bugs críticos.",
+      "linkEtapa": "planilha de testes"
+    },
+    {
+      "nome": "Preparação para GitHub Pages",
+      "responsavel": "Carlos",
+      "prazo": "2025-11-08",
+      "pontuacao": 3,
+      "planoRisco": "",
+      "linkEtapa": "guia de deploy"
+    },
+    {
+      "nome": "Revisão Final e Ajustes",
+      "responsavel": "Dorival",
+      "prazo": "2025-11-09",
+      "pontuacao": 1,
+      "planoRisco": "Equipe toda envolvida em revisão por pares. Amaral faria ajustes urgentes.",
+      "linkEtapa": "checklist final"
+    },
+    {
+      "nome": "Deploy no GitHub Pages",
+      "responsavel": "Amaral",
+      "prazo": "2025-11-10",
+      "pontuacao": 4,
+      "planoRisco": "",
+      "linkEtapa": "URL do site"
+    },
+    {
+      "nome": "Documentação e Encerramento",
+      "responsavel": "Fernando",
+      "prazo": "2025-11-11",
+      "pontuacao": 5,
+      "planoRisco": "",
+      "linkEtapa": "documentação final"
+    }
+  ]
+}

@@ -1,0 +1,407 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Gerenciador de Projetos em Equipe</title>
+<style>
+  body {
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: #f3f6fa;
+    margin: 0;
+    padding: 20px;
+  }
+
+  h1 {
+    text-align: center;
+    color: #2c3e50;
+  }
+
+  .container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  }
+
+  .project-info {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    justify-content: space-between;
+  }
+
+  .project-info input {
+    flex: 1;
+    min-width: 250px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+  }
+
+  button {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background 0.3s;
+  }
+
+  button:hover {
+    background-color: #2980b9;
+  }
+
+  table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+  }
+
+  th, td {
+    border-bottom: 1px solid #ddd;
+    padding: 10px;
+    text-align: center;
+  }
+
+  th {
+    background: #3498db;
+    color: white;
+  }
+
+  tr:nth-child(even) {
+    background: #f9f9f9;
+  }
+
+  tr.vencido {
+    background-color: #ffe6e6 !important;
+  }
+
+  .actions button {
+    background-color: #2ecc71;
+    margin: 2px;
+  }
+
+  .actions button.delete {
+    background-color: #e74c3c;
+  }
+
+  .actions button:hover {
+    opacity: 0.9;
+  }
+
+  /* Modal */
+  .modal {
+    display: none;
+    position: fixed;
+    z-index: 10;
+    left: 0; top: 0;
+    width: 100%; height: 100%;
+    overflow: auto;
+    background-color: rgba(0,0,0,0.4);
+  }
+
+  .modal-content {
+    background: white;
+    margin: 5% auto;
+    padding: 20px;
+    border-radius: 12px;
+    max-width: 500px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+  }
+
+  .modal-content input, .modal-content textarea {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+  }
+
+  .modal-header {
+    font-weight: bold;
+    margin-bottom: 10px;
+    font-size: 1.2em;
+    color: #2c3e50;
+  }
+
+  .btn-group {
+    text-align: right;
+  }
+
+  @media (max-width: 600px) {
+    .project-info {
+      flex-direction: column;
+    }
+  }
+</style>
+<!-- Incluindo a biblioteca jsPDF para exportar PDF -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.28/jspdf.plugin.autotable.min.js"></script>
+</head>
+<body>
+
+<h1>Gerenciador de Projetos em Equipe</h1>
+<div class="container">
+  <div class="project-info">
+    <input type="text" id="tituloProjeto" placeholder="Título do Projeto">
+    <input type="date" id="prazoFinal">
+    <button onclick="abrirModal()">Adicionar Etapa</button>
+    <button onclick="baixarJSON()">💾 Salvar JSON</button>
+    <button onclick="exportarPDF()">📄 Exportar PDF</button>
+    <input type="file" id="arquivoJSON" accept=".json" onchange="carregarJSON(event)">
+  </div>
+
+  <table id="tabelaEtapas">
+    <thead>
+      <tr>
+        <th>Etapa</th>
+        <th>Responsável</th>
+        <th>Prazo</th>
+        <th>Pontuação (0–5)</th>
+        <th>Plano de Risco</th>
+        <th>Link</th>
+        <th>Ações</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+</div>
+
+<!-- Modal -->
+<div id="modalEtapa" class="modal">
+  <div class="modal-content">
+    <div class="modal-header" id="modalTitulo">Nova Etapa</div>
+    <input type="text" id="etapaNome" placeholder="Nome da etapa">
+    <input type="text" id="responsavel" placeholder="Responsável">
+    <input type="date" id="prazo">
+    <input type="number" id="pontuacao" placeholder="Pontuação (0 a 5)" min="0" max="5" value="0">
+    <textarea id="planoRisco" placeholder="Plano em caso de risco (obrigatório se nota ≤ 2)">a pontuar</textarea>
+    <input type="url" id="linkEtapa" placeholder="Link para drive/nuvem (opcional)">
+    <div class="btn-group">
+      <button onclick="salvarEtapa()">Salvar</button>
+      <button onclick="fecharModal()">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Inicializar jsPDF
+  window.jsPDF = window.jspdf.jsPDF;
+
+  let etapas = [];
+  let editIndex = -1;
+
+  function abrirModal(index = -1) {
+    editIndex = index;
+    document.getElementById("modalTitulo").innerText = index >= 0 ? "Editar Etapa" : "Nova Etapa";
+    if (index >= 0) {
+      const e = etapas[index];
+      document.getElementById("etapaNome").value = e.nome;
+      document.getElementById("responsavel").value = e.responsavel;
+      document.getElementById("prazo").value = e.prazo;
+      document.getElementById("pontuacao").value = e.pontuacao;
+      document.getElementById("planoRisco").value = e.planoRisco;
+      document.getElementById("linkEtapa").value = e.linkEtapa || "";
+    } else {
+      // Limpar campos, mas manter valores padrão para pontuação e plano de risco
+      document.getElementById("etapaNome").value = "";
+      document.getElementById("responsavel").value = "";
+      document.getElementById("prazo").value = "";
+      document.getElementById("pontuacao").value = "0";
+      document.getElementById("planoRisco").value = "a pontuar";
+      document.getElementById("linkEtapa").value = "";
+    }
+    document.getElementById("modalEtapa").style.display = "block";
+  }
+
+  function fecharModal() {
+    document.getElementById("modalEtapa").style.display = "none";
+  }
+
+  function salvarEtapa() {
+    const nome = document.getElementById("etapaNome").value.trim();
+    const responsavel = document.getElementById("responsavel").value.trim();
+    const prazo = document.getElementById("prazo").value;
+    const pontuacao = parseInt(document.getElementById("pontuacao").value);
+    const planoRisco = document.getElementById("planoRisco").value.trim();
+    const linkEtapa = document.getElementById("linkEtapa").value.trim();
+
+    if (!nome || !responsavel || !prazo || isNaN(pontuacao)) {
+      alert("Preencha todos os campos obrigatórios!");
+      return;
+    }
+    if (pontuacao < 0 || pontuacao > 5) {
+      alert("A pontuação deve estar entre 0 e 5.");
+      return;
+    }
+    if (pontuacao <= 2 && !planoRisco) {
+      alert("O plano de risco é obrigatório para pontuação 0, 1 ou 2.");
+      return;
+    }
+
+    const novaEtapa = { nome, responsavel, prazo, pontuacao, planoRisco, linkEtapa };
+
+    if (editIndex >= 0) {
+      etapas[editIndex] = novaEtapa;
+    } else {
+      etapas.push(novaEtapa);
+    }
+
+    etapas.sort((a, b) => new Date(a.prazo) - new Date(b.prazo));
+
+    fecharModal();
+    renderTabela();
+  }
+
+  function renderTabela() {
+    const tbody = document.querySelector("#tabelaEtapas tbody");
+    tbody.innerHTML = "";
+
+    const hoje = new Date();
+
+    etapas.forEach((e, i) => {
+      const tr = document.createElement("tr");
+      const prazoDate = new Date(e.prazo);
+      if (prazoDate < hoje) tr.classList.add("vencido");
+
+      tr.innerHTML = `
+        <td>${e.nome}</td>
+        <td>${e.responsavel}</td>
+        <td>${e.prazo}</td>
+        <td>${e.pontuacao}</td>
+        <td>${e.planoRisco || "-"}</td>
+        <td>${e.linkEtapa ? `<a href="${e.linkEtapa}" target="_blank">Abrir</a>` : "-"}</td>
+        <td class="actions">
+          <button onclick="abrirModal(${i})">✏️</button>
+          <button class="delete" onclick="deletarEtapa(${i})">🗑️</button>
+        </td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function deletarEtapa(index) {
+    if (confirm("Deseja realmente excluir esta etapa?")) {
+      etapas.splice(index, 1);
+      renderTabela();
+    }
+  }
+
+  // Função para salvar JSON com escolha de nome e local
+  async function baixarJSON() {
+    const projeto = {
+      titulo: document.getElementById("tituloProjeto").value,
+      prazoFinal: document.getElementById("prazoFinal").value,
+      etapas
+    };
+    
+    // Verificar se a API File System Access está disponível
+    if ('showSaveFilePicker' in window) {
+      try {
+        const options = {
+          types: [
+            {
+              description: 'Arquivo JSON',
+              accept: {
+                'application/json': ['.json'],
+              },
+            },
+          ],
+          suggestedName: document.getElementById("tituloProjeto").value || 'projeto',
+        };
+        
+        const fileHandle = await window.showSaveFilePicker(options);
+        const writable = await fileHandle.createWritable();
+        await writable.write(JSON.stringify(projeto, null, 2));
+        await writable.close();
+      } catch (err) {
+        // Se o usuário cancelar ou ocorrer outro erro, usar o método de download tradicional
+        if (err.name !== 'AbortError') {
+          console.error(err);
+          downloadJSONFallback(projeto);
+        }
+      }
+    } else {
+      // Fallback para navegadores que não suportam a API
+      downloadJSONFallback(projeto);
+    }
+  }
+
+  // Método de fallback para download de JSON
+  function downloadJSONFallback(projeto) {
+    const blob = new Blob([JSON.stringify(projeto, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = (document.getElementById("tituloProjeto").value || "projeto") + ".json";
+    a.click();
+  }
+
+  function carregarJSON(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      const projeto = JSON.parse(e.target.result);
+      document.getElementById("tituloProjeto").value = projeto.titulo || "";
+      document.getElementById("prazoFinal").value = projeto.prazoFinal || "";
+      etapas = projeto.etapas || [];
+      etapas.sort((a, b) => new Date(a.prazo) - new Date(b.prazo));
+      renderTabela();
+    };
+    reader.readAsText(file);
+  }
+
+  // Função para exportar para PDF
+  function exportarPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+    
+    // Título do projeto
+    const tituloProjeto = document.getElementById("tituloProjeto").value || "Projeto sem título";
+    const prazoFinal = document.getElementById("prazoFinal").value || "Não definido";
+    
+    // Adicionar título
+    doc.setFontSize(20);
+    doc.text("Relatório do Projeto", 105, 15, { align: 'center' });
+    
+    // Informações do projeto
+    doc.setFontSize(12);
+    doc.text(`Título: ${tituloProjeto}`, 14, 25);
+    doc.text(`Prazo Final: ${prazoFinal}`, 14, 35);
+    
+    // Preparar dados da tabela
+    const tableColumn = ["Etapa", "Responsável", "Prazo", "Pontuação", "Plano de Risco"];
+    const tableRows = [];
+    
+    etapas.forEach(etapa => {
+      const etapaData = [
+        etapa.nome,
+        etapa.responsavel,
+        etapa.prazo,
+        etapa.pontuacao.toString(),
+        etapa.planoRisco || "-"
+      ];
+      tableRows.push(etapaData);
+    });
+    
+    // Adicionar tabela
+    doc.autoTable({
+      head: [tableColumn],
+      body: tableRows,
+      startY: 45,
+      styles: { fontSize: 10 },
+      headStyles: { fillColor: [52, 152, 219] }
+    });
+    
+    // Salvar o PDF
+    const nomeArquivo = (document.getElementById("tituloProjeto").value || "projeto") + ".pdf";
+    doc.save(nomeArquivo);
+  }
+</script>
+</body>
+</html>
