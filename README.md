@@ -31,7 +31,7 @@ Basta **clicar diretamente no arquivo `Gerenciador_Projetos.html`** para abrir n
 
 ## 🎬 Demonstração
 Assista à demonstração rápida das principais funcionalidades do sistema:  
-🎥 Gerenciador_Projetos.mp4
+🎥 **Gerenciador_Projetos.mp4
 
 O vídeo apresenta:
 - Criação de novas etapas e prazos  
